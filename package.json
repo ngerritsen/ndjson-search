@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Search within ndjson files",
   "main": "index.js",
+  "bin": {
+    "subshift": "index.js"
+  },
   "scripts": {
     "test": "eslint ."
   },
