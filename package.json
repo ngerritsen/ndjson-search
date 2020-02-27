@@ -1,6 +1,6 @@
 {
   "name": "ndjson-search",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Search within ndjson files",
   "main": "index.js",
   "bin": {

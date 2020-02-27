@@ -66,14 +66,14 @@ function search() {
 
     found.push(item);
 
-    if (!count) logResult(item);
+    if (!count) logHit(item);
     if (found.length >= limit) break;
   }
 
   logResult(found.length);
 }
 
-function logResult(item) {
+function logHit(item) {
   const indentation = oneline ? undefined : 2;
   console.log(
     highlight(JSON.stringify(item, null, indentation), { language: 'json' })
