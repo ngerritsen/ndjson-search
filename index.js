@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
 const yargs = require('yargs');
+const ndjson = require('ndjson');
 const { highlight } = require('cli-highlight');
 
 const { input, field, value, pattern, count, oneline, limit } = yargs
@@ -54,23 +55,30 @@ search();
 function search() {
   logSearchPlan();
 
-  const lines = fs.readFileSync(input, 'utf-8').split('\n');
-  const found = [];
+  let found = [];
 
-  for (const line of lines) {
-    if (!line.trim()) continue;
+  const stream = fs.createReadStream(input).pipe(ndjson.parse());
 
-    const item = JSON.parse(line);
-
-    if (!matchField(item, field, value)) continue;
+  stream.on('data', item => {
+    if (!matchField(item, field, value)) {
+      return;
+    }
 
     found.push(item);
 
-    if (!count) logHit(item);
-    if (found.length >= limit) break;
-  }
+    if (!count) {
+      logHit(item);
+    }
 
-  logResult(found.length);
+    if (found.length >= limit) {
+      stream.on('error', () => {});
+      stream.end();
+    }
+  });
+
+  stream.on('end', () => {
+    logResult(found.length);
+  });
 }
 
 function logHit(item) {
