@@ -12,18 +12,18 @@ const { input, field, value, pattern, count, oneline, limit } = yargs
     alias: 'i',
     type: 'string',
     demandOption: true,
-    description: 'the input file path'
+    description: 'The input file path'
   })
   .option('field', {
     alias: 'f',
     type: 'string',
     demandOption: true,
-    description: '<aximum amount of items the retrieve'
+    description: 'Field/path to match on'
   })
   .option('pattern', {
     alias: 'p',
     type: 'string',
-    description: 'Regex pattern to match the field on'
+    description: 'RegEx pattern to match the field on'
   })
   .option('value', {
     alias: 'v',
