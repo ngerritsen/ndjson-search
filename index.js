@@ -2,59 +2,66 @@
 
 const _ = require('lodash');
 const fs = require('fs');
-const path = require('path');
-const chalk = require('chalk');
 const yargs = require('yargs');
 const ndjson = require('ndjson');
 const { highlight } = require('cli-highlight');
 
-const { input, field, value, pattern, count, oneline, limit } = yargs
-  .option('input', {
-    alias: 'i',
-    type: 'string',
-    demandOption: true,
-    description: 'The input file path'
-  })
-  .option('field', {
-    alias: 'f',
-    type: 'string',
-    demandOption: true,
-    description: 'Field/path to match on'
-  })
-  .option('pattern', {
-    alias: 'p',
-    type: 'string',
-    description: 'RegEx pattern to match the field on'
-  })
-  .option('value', {
-    alias: 'v',
-    type: 'string',
-    description: 'Exact value to match the field on'
-  })
-  .option('limit', {
-    alias: 'l',
-    type: 'number',
-    description: 'Maximum amount of items the retrieve'
-  })
-  .option('oneline', {
-    alias: 'o',
-    type: 'boolean',
-    default: false,
-    description: 'Print result on one line'
-  })
-  .option('count', {
-    alias: 'c',
-    type: 'boolean',
-    default: false,
-    description: 'Only print the count'
+const OUTPUT_COUNT = 'count';
+const OUTPUT_NDJSON = 'ndjson';
+const OUTPUT_JSON = 'json';
+
+const { input, field, value, pattern, colors, limit, output, indent } = yargs
+  .command('* <input>', 'Search the ndjson', yargs => {
+    yargs
+      .positional('input', {
+        type: 'string',
+        description: 'The input file path'
+      })
+      .option('indent', {
+        alias: 'i',
+        type: 'number',
+        description:
+          'Spaces of indentation for json output (if none provided no formatting is applied).'
+      })
+      .option('field', {
+        alias: 'f',
+        type: 'string',
+        description: 'Field/path to match on (no field will return everything)'
+      })
+      .option('pattern', {
+        alias: 'p',
+        type: 'string',
+        description: 'RegEx pattern to match the field on'
+      })
+      .option('value', {
+        alias: 'v',
+        type: 'string',
+        description: 'Exact value to match the field on'
+      })
+      .option('limit', {
+        alias: 'l',
+        type: 'number',
+        description: 'Maximum amount of items the retrieve'
+      })
+      .option('output', {
+        alias: 'o',
+        type: 'string',
+        default: OUTPUT_NDJSON,
+        choices: [OUTPUT_NDJSON, OUTPUT_JSON, OUTPUT_COUNT],
+        description: 'Search result output format'
+      })
+      .option('colors', {
+        alias: 'c',
+        type: 'boolean',
+        default: false,
+        description: 'Syntax highlight the json/ndjson output'
+      });
   })
   .help().argv;
 
 search();
 
 function search() {
-  logSearchPlan();
-
   let found = [];
 
   const stream = fs.createReadStream(input).pipe(ndjson.parse());
@@ -66,8 +73,8 @@ function search() {
 
     found.push(item);
 
-    if (!count) {
-      logHit(item);
+    if (output === OUTPUT_NDJSON) {
+      printJson(item);
     }
 
     if (found.length >= limit) {
@@ -77,38 +84,25 @@ function search() {
   });
 
   stream.on('end', () => {
-    logResult(found.length);
+    if (output === OUTPUT_COUNT) {
+      console.log(found.length);
+    }
+
+    if (output === OUTPUT_JSON) {
+      printJson(found);
+    }
   });
 }
 
-function logHit(item) {
-  const indentation = oneline ? undefined : 2;
-  console.log(
-    highlight(JSON.stringify(item, null, indentation), { language: 'json' })
-  );
-}
+function printJson(data) {
+  const jsonString = JSON.stringify(data, null, indent);
 
-function logSearchPlan() {
-  console.log(
-    `🔎 ${count ? 'Counting' : 'Searching for'}` +
-      chalk.magenta.bold(` $.${field}`) +
-      (pattern
-        ? ` matches ${chalk.yellow.bold(`/${pattern}/`)}`
-        : ` is ${chalk.yellow.bold(value)}`) +
-      ` in ${chalk.bold(path.basename(input))}` +
-      (limit ? ` (limit ${chalk.red.bold(limit)})` : '') +
-      '...'
-  );
-}
+  if (colors) {
+    console.log(highlight(jsonString, { language: 'json' }));
+    return;
+  }
 
-function logResult(resultCount) {
-  console.log(
-    `✅ ${chalk.bold(resultCount)} ${
-      resultCount === 1 ? 'item' : 'items'
-    } found` +
-      (limit === resultCount ? ` (limit ${chalk.red.bold(limit)})` : '') +
-      '.'
-  );
+  console.log(jsonString);
 }
 
 function matchField(item, field, value) {
