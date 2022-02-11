@@ -1,3 +1,5 @@
+ [![pipeline status](https://gitlab.com/ngerritsen/ndjson-search/badges/master/pipeline.svg)](https://gitlab.com/ngerritsen/ndjson-search/-/commits/master)
+
 # NDJSON Search 🕵🏻‍♀️
 
 Search in newline delimited JSON files.
@@ -17,13 +19,13 @@ ndjs <filepath> [...options]
 ### Basic usage
 
 ```
-ndjs ./file.ndsjon --field name --value "John Doe" 
+ndjs ./file.ndsjon --field name --value "John Doe"
 ```
 
 ### Search with RegEx
 
 ```
-ndjs ./file.ndsjon --field name --pattern "^John.+Doe$" 
+ndjs ./file.ndsjon --field name --pattern "^John.+Doe$"
 ```
 
 ### Search on nested fields
